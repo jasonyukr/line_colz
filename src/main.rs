@@ -63,6 +63,13 @@ fn main() {
             (10 * 5, 2),
             (10 * 6, 2),
             (9999999, 250)];
+    let t7 = [(2 * 1, 255),
+            (2 * 2, 254),
+            (2 * 3, 253),
+            (2 * 4, 252),
+            (2 * 5, 251),
+            (2 * 6, 250),
+            (9999999, 249)];
     let mut table = t1;
     let mut check_file = false;
     let mut reverse = false;
@@ -81,6 +88,8 @@ fn main() {
             table = t5;
         } else if arg == "-t6" {
             table = t6;
+        } else if arg == "-t7" {
+            table = t7;
         } else if arg == "-f" {
             check_file = true;
         } else if arg == "-r" {
