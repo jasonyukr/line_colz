@@ -56,6 +56,13 @@ fn main() {
             (10 * 5, 69),
             (10 * 6, 33),
             (9999999, 250)];
+    let t6 = [(10 * 1, 3),
+            (10 * 2, 5),
+            (10 * 3, 4),
+            (10 * 4, 6),
+            (10 * 5, 2),
+            (10 * 6, 2),
+            (9999999, 250)];
     let mut table = t1;
     let mut check_file = false;
     let mut reverse = false;
@@ -72,6 +79,8 @@ fn main() {
             table = t4;
         } else if arg == "-t5" {
             table = t5;
+        } else if arg == "-t6" {
+            table = t6;
         } else if arg == "-f" {
             check_file = true;
         } else if arg == "-r" {
@@ -104,7 +113,7 @@ fn main() {
         let ln = (idx + 1) as i32;
         if check_file {
             if !Path::new(data.d2.trim()).exists() {
-                println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, 160, data.d2);
+                println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, 1, data.d2);
                 continue;
             }
         }
