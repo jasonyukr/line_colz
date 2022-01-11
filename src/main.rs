@@ -2,9 +2,32 @@ use std::io::{self, BufRead};
 use std::env;
 use std::path::Path;
 
+/*
+ANSI 256color to true-color
+===========================
+ NAME       FG/BG     RGB
+---------------------------
+white      37m/47m   c5c8c6
+red        31m/41m   cc6666
+green      32m/42m   b5bd68
+yellow     33m/43m   f0c674
+blue       34m/44m   81a2be
+magenta    35m/45m   b294bb
+cyan       36m/46m   8abe87
+gray       90m/100m  666666
+Br white   97m/107m  eaeaea
+Br red     91m/101m  d54e53
+Br green   92m/102m  b9ca4a
+Br yellow  93m/103m  e7c547
+Br blue    94m/104m  7aa6da
+Br magenta 95m/105m  c397d8
+Br cyan    96m/106m  70c0b1
+===========================
+*/
+
 struct Data {
     d1: String,
-    d2: String 
+    d2: String
 }
 
 struct RGB {
@@ -56,98 +79,62 @@ fn min(a: Option<usize>, b: Option<usize>) -> Option<usize> {
 }
 
 fn main() {
-
-    // Table for 256 color
-    let t1 = [(10 * 1, 255),
-            (10 * 2, 254),
-            (10 * 3, 253),
-            (10 * 4, 252),
-            (10 * 5, 251),
-            (10 * 6, 250),
-            (9999999, 249)];
-    let t2 = [(10 * 1, 208),
-            (10 * 2, 172),
-            (10 * 3, 136),
-            (10 * 4, 100),
-            (10 * 5, 64),
-            (10 * 6, 64),
-            (9999999, 250)];
-    let t3 = [(10 * 1, 211),
-            (10 * 2, 175),
-            (10 * 3, 139),
-            (10 * 4, 103),
-            (10 * 5, 67),
-            (10 * 6, 31),
-            (9999999, 250)];
-    let t4 = [(10 * 1, 207),
-            (10 * 2, 206),
-            (10 * 3, 205),
-            (10 * 4, 204),
-            (10 * 5, 203),
-            (10 * 6, 202),
-            (9999999, 250)];
-    let t5 = [(10 * 1, 213),
-            (10 * 2, 177),
-            (10 * 3, 141),
-            (10 * 4, 105),
-            (10 * 5, 69),
-            (10 * 6, 33),
-            (9999999, 250)];
-    let t6 = [(10 * 1, 3),
-            (10 * 2, 5),
-            (10 * 3, 4),
-            (10 * 4, 6),
-            (10 * 5, 2),
-            (10 * 6, 2),
-            (9999999, 250)];
-    let t7 = [(2 * 1, 255),
-            (2 * 2, 254),
-            (2 * 3, 253),
-            (2 * 4, 252),
-            (2 * 5, 251),
-            (2 * 6, 250),
-            (9999999, 249)];
-    let mut table = t1;
-
     // Table for true-color gradation
-    let gradation_table = [(1, 255, 255, 255, 255, 255, 255),
-                    (100, 0xff, 0xff, 0xff, 0x99, 0x99, 0x99),
-                    (100, 0x65, 0xa8, 0xef, 0x99, 0x99, 0x99),
-                    (100, 0xc3, 0xa0, 0x21, 0x99, 0x99, 0x99),
-                    (100, 0x7e, 0xa4, 0x5b, 0x99, 0x99, 0x99)];
+    // (step, start.r, start.g, start.b, end.r, end.g, end.b)
+    let gradation_table =
+        [(50, 0xc5, 0xc8, 0xc6, 0xb0, 0xb0, 0xb0),
+        (50, 0xcc, 0x66, 0x66, 0xb0, 0xb0, 0xb0),
+        (50, 0xb5, 0xbd, 0x68, 0xb0, 0xb0, 0xb0),
+        (50, 0xf0, 0xc6, 0x74, 0xb0, 0xb0, 0xb0),
+        (50, 0x81, 0xa2, 0xbe, 0xb0, 0xb0, 0xb0),
+        (50, 0xb2, 0x94, 0xbb, 0xb0, 0xb0, 0xb0),
+        (50, 0x8a, 0xbe, 0x87, 0xb0, 0xb0, 0xb0),
+        (50, 0x66, 0x66, 0x66, 0xb0, 0xb0, 0xb0),
+        (50, 0xea, 0xea, 0xea, 0xb0, 0xb0, 0xb0),
+        (50, 0xd5, 0x4e, 0x53, 0xb0, 0xb0, 0xb0),
+        (50, 0xb9, 0xca, 0x4a, 0xb0, 0xb0, 0xb0),
+        (50, 0xe7, 0xc5, 0x47, 0xb0, 0xb0, 0xb0),
+        (50, 0x7a, 0xa6, 0xda, 0xb0, 0xb0, 0xb0),
+        (50, 0xc3, 0x97, 0xd8, 0xb0, 0xb0, 0xb0),
+        (50, 0x70, 0xc0, 0xb1, 0xb0, 0xb0, 0xb0),
+        (100, 0xc5, 0xc8, 0xc6, 0xb0, 0xb0, 0xb0),
+        (100, 0xcc, 0x66, 0x66, 0xb0, 0xb0, 0xb0),
+        (100, 0xb5, 0xbd, 0x68, 0xb0, 0xb0, 0xb0),
+        (100, 0xf0, 0xc6, 0x74, 0xb0, 0xb0, 0xb0),
+        (100, 0x81, 0xa2, 0xbe, 0xb0, 0xb0, 0xb0),
+        (100, 0xb2, 0x94, 0xbb, 0xb0, 0xb0, 0xb0),
+        (100, 0x8a, 0xbe, 0x87, 0xb0, 0xb0, 0xb0),
+        (100, 0x66, 0x66, 0x66, 0xb0, 0xb0, 0xb0),
+        (100, 0xea, 0xea, 0xea, 0xb0, 0xb0, 0xb0),
+        (100, 0xd5, 0x4e, 0x53, 0xb0, 0xb0, 0xb0),
+        (100, 0xb9, 0xca, 0x4a, 0xb0, 0xb0, 0xb0),
+        (100, 0xe7, 0xc5, 0x47, 0xb0, 0xb0, 0xb0),
+        (100, 0x7a, 0xa6, 0xda, 0xb0, 0xb0, 0xb0),
+        (100, 0xc3, 0x97, 0xd8, 0xb0, 0xb0, 0xb0),
+        (100, 0x70, 0xc0, 0xb1, 0xb0, 0xb0, 0xb0)];
+
     let mut gradation_idx = 0;
 
     let mut check_file = false;
     let mut reverse = false;
 
     // parse argument
+    let mut idx_mode = false;
     for arg in env::args() {
-        if arg == "-t1" {
-            table = t1;
-        } else if arg == "-t2" {
-            table = t2;
-        } else if arg == "-t3" {
-            table = t3;
-        } else if arg == "-t4" {
-            table = t4;
-        } else if arg == "-t5" {
-            table = t5;
-        } else if arg == "-t6" {
-            table = t6;
-        } else if arg == "-t7" {
-            table = t7;
-        } else if arg == "-g1" {
-            gradation_idx = 1;
-        } else if arg == "-g2" {
-            gradation_idx = 2;
-        } else if arg == "-g3" {
-            gradation_idx = 3;
-        } else if arg == "-g4" {
-            gradation_idx = 4;
-        } else if arg == "-f" {
+        if idx_mode {
+            gradation_idx = arg.parse::<usize>().unwrap();
+            if gradation_idx >= gradation_table.len() {
+                gradation_idx = 0;
+            }
+            idx_mode = false;
+            continue;
+        }
+        if arg == "-f" || arg == "--f" {
             check_file = true;
-        } else if arg == "-r" {
+        } else if arg == "-r" || arg == "--r" {
             reverse = true;
+        } else if arg == "-g" || arg == "--g" {
+            idx_mode = true
         }
     }
 
@@ -171,72 +158,44 @@ fn main() {
         v.push(data);
     }
 
-    if gradation_idx > 0 {
-        let start = RGB {
-            r: gradation_table[gradation_idx].1,
-            g: gradation_table[gradation_idx].2,
-            b: gradation_table[gradation_idx].3
-        };
-        let end = RGB {
-            r: gradation_table[gradation_idx].4,
-            g: gradation_table[gradation_idx].5,
-            b: gradation_table[gradation_idx].6
-        };
+    let start = RGB {
+        r: gradation_table[gradation_idx].1,
+        g: gradation_table[gradation_idx].2,
+        b: gradation_table[gradation_idx].3
+    };
+    let end = RGB {
+        r: gradation_table[gradation_idx].4,
+        g: gradation_table[gradation_idx].5,
+        b: gradation_table[gradation_idx].6
+    };
 
-        let gradation = generate_gradation(&start, &end, gradation_table[gradation_idx].0);
-        let line_count = v.len() as i32;
-        for (idx, data) in v.iter().enumerate() {
-            if check_file {
-                if !Path::new(data.d2.trim()).exists() {
-                    println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, 1, data.d2);
-                    continue;
-                }
-            }
-            let rgb;
-            if reverse {
-                rgb = gradation.get((line_count - idx as i32) as usize);
-            } else {
-                rgb = gradation.get(idx);
-            }
-            let red: u32;
-            let green: u32;
-            let blue: u32;
-            if rgb.is_none() {
-                red = end.r;
-                green = end.g;
-                blue = end.b;
-            } else {
-                red = rgb.unwrap().r;
-                green = rgb.unwrap().g;
-                blue = rgb.unwrap().b;
-            }
-            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.d1, red, green, blue, data.d2);
-        }
-    } else {
-        let line_count = v.len() as i32;
-        for (idx, data) in v.iter().enumerate() {
-            let ln = (idx + 1) as i32;
-            if check_file {
-                if !Path::new(data.d2.trim()).exists() {
-                    println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, 1, data.d2);
-                    continue;
-                }
-            }
-            if reverse {
-                for t in table {
-                    if ln <= t.0 {
-                        println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, t.1, data.d2);
-                        break;
-                    }
-                }
-            } else {
-                for t in table {
-                    if ln > line_count - t.0 {
-                        println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, t.1, data.d2);
-                        break;
-                    }
-                }
+    let gradation = generate_gradation(&start, &end, gradation_table[gradation_idx].0);
+    let line_count = v.len() as i32;
+    for (idx, data) in v.iter().enumerate() {
+        if check_file {
+            if !Path::new(data.d2.trim()).exists() {
+                println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, 1, data.d2);
+                continue;
             }
         }
+        let rgb;
+        if reverse {
+            rgb = gradation.get(idx);
+        } else {
+            rgb = gradation.get((line_count - idx as i32) as usize);
+        }
+        let red: u32;
+        let green: u32;
+        let blue: u32;
+        if rgb.is_none() {
+            red = end.r;
+            green = end.g;
+            blue = end.b;
+        } else {
+            red = rgb.unwrap().r;
+            green = rgb.unwrap().g;
+            blue = rgb.unwrap().b;
+        }
+        println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.d1, red, green, blue, data.d2);
     }
 }
