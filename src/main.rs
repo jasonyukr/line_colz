@@ -117,6 +117,7 @@ fn main() {
 
     let mut check_file = false;
     let mut reverse = false;
+    let mut split = false;
 
     // parse argument
     let mut idx_mode = false;
@@ -135,6 +136,8 @@ fn main() {
             reverse = true;
         } else if arg == "-g" || arg == "--g" {
             idx_mode = true
+        } else if arg == "-s" || arg == "--s" {
+            split = true;
         }
     }
 
@@ -142,20 +145,25 @@ fn main() {
     let mut v = vec![];
     for ln in stdin.lock().lines() {
         let line = ln.unwrap();
-        let line_trim = line.trim();
-        let idx = min(line_trim.find(" "), line_trim.find("\t"));
+        if split {
+            let line_trim = line.trim();
+            let idx = min(line_trim.find(" "), line_trim.find("\t"));
 
-        let e1;
-        let e2;
-        if idx == None {
-            e1 = "";
-            e2 = line_trim;
+            let e1;
+            let e2;
+            if idx == None {
+                e1 = "";
+                e2 = line_trim;
+            } else {
+                e1 = &line_trim[..idx.unwrap()];
+                e2 = &line_trim[idx.unwrap()..];
+            }
+            let data = Data{d1: e1.to_string(), d2: e2.to_string()};
+            v.push(data);
         } else {
-            e1 = &line_trim[..idx.unwrap()];
-            e2 = &line_trim[idx.unwrap()..];
+            let data = Data{d1: line, d2: "".to_string()};
+            v.push(data);
         }
-        let data = Data{d1: e1.to_string(), d2: e2.to_string()};
-        v.push(data);
     }
 
     let start = RGB {
@@ -174,7 +182,11 @@ fn main() {
     for (idx, data) in v.iter().enumerate() {
         if check_file {
             if !Path::new(data.d2.trim()).exists() {
-                println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, 1, data.d2);
+                if split {
+                    println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, 1, data.d2);
+                } else {
+                    println!("\x1b[38;5;{}m{}\x1b[0m", 1, data.d1);
+                }
                 continue;
             }
         }
@@ -196,6 +208,10 @@ fn main() {
             green = rgb.unwrap().g;
             blue = rgb.unwrap().b;
         }
-        println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.d1, red, green, blue, data.d2);
+        if split {
+            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.d1, red, green, blue, data.d2);
+        } else {
+            println!("\x1b[38;2;{};{};{}m{}\x1b[0m", red, green, blue, data.d1);
+        }
     }
 }
