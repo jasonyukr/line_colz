@@ -185,7 +185,7 @@ fn main() {
                 if split {
                     println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, 1, data.d2);
                 } else {
-                    println!("\x1b[38;5;{}m{}\x1b[0m", 1, data.d1);
+                    println!("\x1b[38;5;{}m{}\x1b[0m", 1, data.d2);
                 }
                 continue;
             }
