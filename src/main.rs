@@ -161,7 +161,7 @@ fn main() {
             let data = Data{d1: e1.to_string(), d2: e2.to_string()};
             v.push(data);
         } else {
-            let data = Data{d1: line, d2: "".to_string()};
+            let data = Data{d1: "".to_string(), d2: line};
             v.push(data);
         }
     }
@@ -190,28 +190,29 @@ fn main() {
                 continue;
             }
         }
+
+        let mut fore = RGB {
+            r: end.r,
+            g: end.g,
+            b: end.b
+        };
+
         let rgb;
         if reverse {
             rgb = gradation.get(idx);
         } else {
             rgb = gradation.get((line_count - idx as i32) as usize);
         }
-        let red: u32;
-        let green: u32;
-        let blue: u32;
-        if rgb.is_none() {
-            red = end.r;
-            green = end.g;
-            blue = end.b;
-        } else {
-            red = rgb.unwrap().r;
-            green = rgb.unwrap().g;
-            blue = rgb.unwrap().b;
+        if !rgb.is_none() {
+            fore.r = rgb.unwrap().r;
+            fore.g = rgb.unwrap().g;
+            fore.b = rgb.unwrap().b;
         }
+
         if split {
-            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.d1, red, green, blue, data.d2);
+            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.d1, fore.r, fore.g, fore.b, data.d2);
         } else {
-            println!("\x1b[38;2;{};{};{}m{}\x1b[0m", red, green, blue, data.d1);
+            println!("\x1b[38;2;{};{};{}m{}\x1b[0m", fore.r, fore.g, fore.b, data.d2);
         }
     }
 }
