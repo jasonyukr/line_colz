@@ -5,7 +5,7 @@ use std::path::Path;
 /*
 ANSI 256color to true-color
 ===========================
- NAME       FG/BG     RGB
+ NAME       FG/BG     Rgb
 ---------------------------
 white      37m/47m   c5c8c6
 red        31m/41m   cc6666
@@ -27,23 +27,23 @@ Br cyan    96m/106m  70c0b1
 
 struct Data {
     d1: String,
-    d2: String
+    d2: String 
 }
 
-struct RGB {
+struct Rgb {
     r: u32,
     g: u32,
     b: u32
 }
 
-fn generate_gradation(start: &RGB, end: &RGB, steps: u32) -> Vec<RGB> {
+fn get_gradation(start: &Rgb, end: &Rgb, steps: u32) -> Vec<Rgb> {
     // The number of colors to compute
     let len = steps;
 
     // Alpha blending amount
     let mut alpha = 0.0;
 
-    let mut gradation: Vec<RGB> = Vec::new();
+    let mut gradation: Vec<Rgb> = Vec::new();
 
     for _i in 0..len {
         let red: f32;
@@ -55,7 +55,7 @@ fn generate_gradation(start: &RGB, end: &RGB, steps: u32) -> Vec<RGB> {
         green = end.g as f32 * alpha + (1.0 - alpha) * start.g as f32;
         blue = end.b as f32 * alpha + (1.0 - alpha) * start.b as f32;
 
-        let rgb = RGB {
+        let rgb = Rgb {
             r: red as u32,
             g: green as u32,
             b: blue as u32
@@ -144,40 +144,47 @@ fn main() {
     let stdin = io::stdin();
     let mut v = vec![];
     for ln in stdin.lock().lines() {
-        let line = ln.unwrap();
+        let line;
+        match ln {
+            Ok(data) => line = data,
+            Err(_) => continue
+        }
         if split {
             let line_trim = line.trim();
-            let idx = min(line_trim.find(" "), line_trim.find("\t"));
+            let idx = min(line_trim.find(' '), line_trim.find('\t'));
 
             let e1;
             let e2;
-            if idx == None {
-                e1 = "";
-                e2 = line_trim;
-            } else {
-                e1 = &line_trim[..idx.unwrap()];
-                e2 = &line_trim[idx.unwrap()..];
+            match idx {
+                Some(i) => {
+                    e1 = &line_trim[..i];
+                    e2 = &line_trim[i..];
+                },
+                None => {
+                    e1 = "";
+                    e2 = line_trim;
+                }
             }
-            let data = Data{d1: e1.to_string(), d2: e2.to_string()};
+            let data = Data {d1: e1.to_string(), d2: e2.to_string()};
             v.push(data);
         } else {
-            let data = Data{d1: "".to_string(), d2: line};
+            let data = Data {d1: String::from(""), d2: line};
             v.push(data);
         }
     }
 
-    let start = RGB {
+    let start = Rgb {
         r: gradation_table[gradation_idx].1,
         g: gradation_table[gradation_idx].2,
         b: gradation_table[gradation_idx].3
     };
-    let end = RGB {
+    let end = Rgb {
         r: gradation_table[gradation_idx].4,
         g: gradation_table[gradation_idx].5,
         b: gradation_table[gradation_idx].6
     };
 
-    let gradation = generate_gradation(&start, &end, gradation_table[gradation_idx].0);
+    let gradation = get_gradation(&start, &end, gradation_table[gradation_idx].0);
     let line_count = v.len() as i32;
     for (idx, data) in v.iter().enumerate() {
         if check_file {
@@ -191,7 +198,7 @@ fn main() {
             }
         }
 
-        let mut fore = RGB {
+        let mut fore = Rgb {
             r: end.r,
             g: end.g,
             b: end.b
@@ -203,10 +210,13 @@ fn main() {
         } else {
             rgb = gradation.get((line_count - idx as i32) as usize);
         }
-        if !rgb.is_none() {
-            fore.r = rgb.unwrap().r;
-            fore.g = rgb.unwrap().g;
-            fore.b = rgb.unwrap().b;
+        match rgb {
+            Some(color) => {
+                fore.r = color.r;
+                fore.g = color.g;
+                fore.b = color.b;
+            },
+            None => {}
         }
 
         if split {
