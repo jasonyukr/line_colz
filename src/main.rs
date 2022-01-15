@@ -25,20 +25,21 @@ Br cyan    96m/106m  70c0b1
 ===========================
 */
 
+#[derive(Debug, Copy, Clone)]
 struct Rgb {
     r: u32,
     g: u32,
     b: u32
 }
 
-fn get_gradation(start: &Rgb, end: &Rgb, steps: u32) -> Vec<Rgb> {
+fn get_grad(start: &Rgb, end: &Rgb, steps: u32) -> Vec<Rgb> {
     // The number of colors to compute
     let len = steps;
 
     // Alpha blending amount
     let mut alpha = 0.0;
 
-    let mut gradation: Vec<Rgb> = Vec::new();
+    let mut grad: Vec<Rgb> = Vec::new();
 
     for _i in 0..len {
         let red: f32;
@@ -55,9 +56,9 @@ fn get_gradation(start: &Rgb, end: &Rgb, steps: u32) -> Vec<Rgb> {
             g: green as u32,
             b: blue as u32
         };
-        gradation.push(rgb)
+        grad.push(rgb)
     }
-    return gradation;
+    return grad;
 }
 
 fn min(a: Option<usize>, b: Option<usize>) -> Option<usize> {
@@ -76,7 +77,7 @@ fn min(a: Option<usize>, b: Option<usize>) -> Option<usize> {
 fn main() {
     // Table for true-color gradation
     // (step, start.r, start.g, start.b, end.r, end.g, end.b)
-    let gradation_table =
+    let grad_table =
         [(50, 0xc5, 0xc8, 0xc6, 0xb0, 0xb0, 0xb0),
         (50, 0xcc, 0x66, 0x66, 0xb0, 0xb0, 0xb0),
         (50, 0xb5, 0xbd, 0x68, 0xb0, 0xb0, 0xb0),
@@ -108,7 +109,7 @@ fn main() {
         (100, 0xc3, 0x97, 0xd8, 0xb0, 0xb0, 0xb0),
         (100, 0x70, 0xc0, 0xb1, 0xb0, 0xb0, 0xb0)];
 
-    let mut gradation_idx = 0;
+    let mut grad_idx = 0;
 
     let mut check_file = false;
     let mut reverse = false;
@@ -119,11 +120,11 @@ fn main() {
     for arg in env::args() {
         if idx_mode {
             match arg.parse::<usize>() {
-                Ok(i) => gradation_idx = i,
-                Err(_) => gradation_idx = 0
+                Ok(i) => grad_idx = i,
+                Err(_) => grad_idx = 0
             }
-            if gradation_idx >= gradation_table.len() {
-                gradation_idx = 0;
+            if grad_idx >= grad_table.len() {
+                grad_idx = 0;
             }
             idx_mode = false;
             continue;
@@ -169,18 +170,18 @@ fn main() {
         }
     }
 
-    let start = Rgb {
-        r: gradation_table[gradation_idx].1,
-        g: gradation_table[gradation_idx].2,
-        b: gradation_table[gradation_idx].3
+    let fore_start_color = Rgb {
+        r: grad_table[grad_idx].1,
+        g: grad_table[grad_idx].2,
+        b: grad_table[grad_idx].3
     };
-    let end = Rgb {
-        r: gradation_table[gradation_idx].4,
-        g: gradation_table[gradation_idx].5,
-        b: gradation_table[gradation_idx].6
+    let fore_end_color = Rgb {
+        r: grad_table[grad_idx].4,
+        g: grad_table[grad_idx].5,
+        b: grad_table[grad_idx].6
     };
 
-    let gradation = get_gradation(&start, &end, gradation_table[gradation_idx].0);
+    let grad = get_grad(&fore_start_color, &fore_end_color, grad_table[grad_idx].0);
     let line_count = v.len() as i32;
     for (idx, data) in v.iter().enumerate() {
         if check_file {
@@ -194,31 +195,23 @@ fn main() {
             }
         }
 
-        let mut fore = Rgb {
-            r: end.r,
-            g: end.g,
-            b: end.b
-        };
-
-        let rgb;
+        let grad_color;
         if reverse {
-            rgb = gradation.get(idx);
+            grad_color = grad.get(idx);
         } else {
-            rgb = gradation.get((line_count - idx as i32) as usize);
+            grad_color = grad.get((line_count - idx as i32) as usize);
         }
-        match rgb {
-            Some(color) => {
-                fore.r = color.r;
-                fore.g = color.g;
-                fore.b = color.b;
-            },
-            None => {}
+
+        let fore_color;
+        match grad_color {
+            Some(color) => fore_color = color,
+            None => fore_color = &fore_end_color
         }
 
         if split {
-            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.0, fore.r, fore.g, fore.b, data.1);
+            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.0, fore_color.r, fore_color.g, fore_color.b, data.1);
         } else {
-            println!("\x1b[38;2;{};{};{}m{}\x1b[0m", fore.r, fore.g, fore.b, data.1);
+            println!("\x1b[38;2;{};{};{}m{}\x1b[0m", fore_color.r, fore_color.g, fore_color.b, data.1);
         }
     }
 }
