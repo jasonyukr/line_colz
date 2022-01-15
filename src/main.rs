@@ -25,11 +25,6 @@ Br cyan    96m/106m  70c0b1
 ===========================
 */
 
-struct Data {
-    d1: String,
-    d2: String 
-}
-
 struct Rgb {
     r: u32,
     g: u32,
@@ -123,7 +118,10 @@ fn main() {
     let mut idx_mode = false;
     for arg in env::args() {
         if idx_mode {
-            gradation_idx = arg.parse::<usize>().unwrap();
+            match arg.parse::<usize>() {
+                Ok(i) => gradation_idx = i,
+                Err(_) => gradation_idx = 0
+            }
             if gradation_idx >= gradation_table.len() {
                 gradation_idx = 0;
             }
@@ -165,11 +163,9 @@ fn main() {
                     e2 = line_trim;
                 }
             }
-            let data = Data {d1: e1.to_string(), d2: e2.to_string()};
-            v.push(data);
+            v.push((e1.to_string(), e2.to_string()));
         } else {
-            let data = Data {d1: String::from(""), d2: line};
-            v.push(data);
+            v.push((String::from(""), line));
         }
     }
 
@@ -188,11 +184,11 @@ fn main() {
     let line_count = v.len() as i32;
     for (idx, data) in v.iter().enumerate() {
         if check_file {
-            if !Path::new(data.d2.trim()).exists() {
+            if !Path::new(data.1.trim()).exists() {
                 if split {
-                    println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.d1, 1, data.d2);
+                    println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data.1);
                 } else {
-                    println!("\x1b[38;5;{}m{}\x1b[0m", 1, data.d2);
+                    println!("\x1b[38;5;{}m{}\x1b[0m", 1, data.1);
                 }
                 continue;
             }
@@ -220,9 +216,9 @@ fn main() {
         }
 
         if split {
-            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.d1, fore.r, fore.g, fore.b, data.d2);
+            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.0, fore.r, fore.g, fore.b, data.1);
         } else {
-            println!("\x1b[38;2;{};{};{}m{}\x1b[0m", fore.r, fore.g, fore.b, data.d2);
+            println!("\x1b[38;2;{};{};{}m{}\x1b[0m", fore.r, fore.g, fore.b, data.1);
         }
     }
 }
