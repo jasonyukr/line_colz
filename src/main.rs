@@ -141,16 +141,11 @@ fn main() {
         if let Ok(line) = ln {
             if split {
                 let line_trim = line.trim();
-                let e1;
-                let e2;
                 if let Some(i) = min(line_trim.find(' '), line_trim.find('\t')) {
-                    e1 = &line_trim[..i];
-                    e2 = &line_trim[i..];
+                    v.push(((&line_trim[..i]).to_string(), (&line_trim[i..]).to_string()));
                 } else {
-                    e1 = "";
-                    e2 = line_trim;
+                    v.push((String::from(""), line_trim.to_string()));
                 }
-                v.push((e1.to_string(), e2.to_string()));
             } else {
                 v.push((String::from(""), line));
             }
