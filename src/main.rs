@@ -33,19 +33,14 @@ struct Rgb {
 }
 
 fn get_grad(start: &Rgb, end: &Rgb, steps: u32) -> Vec<Rgb> {
-    // The number of colors to compute
-    let len = steps;
-
-    // Alpha blending amount
     let mut alpha = 0.0;
-
     let mut grad: Vec<Rgb> = Vec::new();
 
-    for _i in 0..len {
+    for _i in 0..steps {
         let red: f32;
         let green: f32;
         let blue: f32;
-        alpha = alpha + (1.0 / len as f32);
+        alpha = alpha + (1.0 / steps as f32);
 
         red = end.r as f32 * alpha + (1.0 - alpha) * start.r as f32;
         green = end.g as f32 * alpha + (1.0 - alpha) * start.g as f32;
@@ -58,7 +53,8 @@ fn get_grad(start: &Rgb, end: &Rgb, steps: u32) -> Vec<Rgb> {
         };
         grad.push(rgb)
     }
-    return grad;
+
+    grad
 }
 
 fn min(a: Option<usize>, b: Option<usize>) -> Option<usize> {
@@ -119,12 +115,11 @@ fn main() {
     let mut idx_mode = false;
     for arg in env::args() {
         if idx_mode {
-            match arg.parse::<usize>() {
-                Ok(i) => grad_idx = i,
-                Err(_) => grad_idx = 0
-            }
-            if grad_idx >= grad_table.len() {
-                grad_idx = 0;
+            if let Ok(i) = arg.parse::<usize>() {
+                grad_idx = i;
+                if grad_idx >= grad_table.len() {
+                    grad_idx = 0;
+                }
             }
             idx_mode = false;
             continue;
@@ -143,30 +138,22 @@ fn main() {
     let stdin = io::stdin();
     let mut v = vec![];
     for ln in stdin.lock().lines() {
-        let line;
-        match ln {
-            Ok(data) => line = data,
-            Err(_) => continue
-        }
-        if split {
-            let line_trim = line.trim();
-            let idx = min(line_trim.find(' '), line_trim.find('\t'));
-
-            let e1;
-            let e2;
-            match idx {
-                Some(i) => {
+        if let Ok(line) = ln {
+            if split {
+                let line_trim = line.trim();
+                let e1;
+                let e2;
+                if let Some(i) = min(line_trim.find(' '), line_trim.find('\t')) {
                     e1 = &line_trim[..i];
                     e2 = &line_trim[i..];
-                },
-                None => {
+                } else {
                     e1 = "";
                     e2 = line_trim;
                 }
+                v.push((e1.to_string(), e2.to_string()));
+            } else {
+                v.push((String::from(""), line));
             }
-            v.push((e1.to_string(), e2.to_string()));
-        } else {
-            v.push((String::from(""), line));
         }
     }
 
@@ -185,6 +172,7 @@ fn main() {
     let line_count = v.len() as i32;
     for (idx, data) in v.iter().enumerate() {
         if check_file {
+            // check if file exists
             if !Path::new(data.1.trim()).exists() {
                 if split {
                     println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data.1);
@@ -195,6 +183,7 @@ fn main() {
             }
         }
 
+        // get current gradation color from current index
         let grad_color;
         if reverse {
             grad_color = grad.get(idx);
@@ -202,16 +191,20 @@ fn main() {
             grad_color = grad.get((line_count - idx as i32) as usize);
         }
 
-        let fore_color;
-        match grad_color {
-            Some(color) => fore_color = color,
-            None => fore_color = &fore_end_color
+        let mut fore_color = &fore_end_color;
+        if let Some(c) = grad_color {
+            fore_color = c;
         }
 
         if split {
-            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m", data.0, fore_color.r, fore_color.g, fore_color.b, data.1);
+            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m",
+                     data.0,
+                     fore_color.r, fore_color.g, fore_color.b,
+                     data.1);
         } else {
-            println!("\x1b[38;2;{};{};{}m{}\x1b[0m", fore_color.r, fore_color.g, fore_color.b, data.1);
+            println!("\x1b[38;2;{};{};{}m{}\x1b[0m",
+                     fore_color.r, fore_color.g, fore_color.b,
+                     data.1);
         }
     }
 }
