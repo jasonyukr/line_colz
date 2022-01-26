@@ -107,7 +107,7 @@ fn main() {
 
     let mut grad_idx = 0;
 
-    let mut check_file = false;
+    let mut check_exist = false;
     let mut reverse = false;
     let mut split = false;
 
@@ -125,7 +125,11 @@ fn main() {
             continue;
         }
         if arg == "-f" || arg == "--f" {
-            check_file = true;
+            check_exist = true;
+        } else if arg == "-d" || arg == "--d" {
+            check_exist = true;
+        } else if arg == "-e" || arg == "--e" {
+            check_exist = true;
         } else if arg == "-r" || arg == "--r" {
             reverse = true;
         } else if arg == "-g" || arg == "--g" {
@@ -166,9 +170,9 @@ fn main() {
     let grad = get_grad(&fore_start_color, &fore_end_color, grad_table[grad_idx].0);
     let line_count = v.len() as i32;
     for (idx, data) in v.iter().enumerate() {
-        if check_file {
-            // check if file exists
-            if !Path::new(data.1.trim()).exists() {
+        if check_exist {
+            let path = shellexpand::tilde(data.1.trim()).into_owned();
+            if !Path::new(&path).exists() {
                 if split {
                     println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data.1);
                 } else {
