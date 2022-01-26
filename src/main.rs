@@ -34,7 +34,7 @@ struct Rgb {
 
 fn get_grad(start: &Rgb, end: &Rgb, steps: u32) -> Vec<Rgb> {
     let mut alpha = 0.0;
-    let mut grad: Vec<Rgb> = Vec::new();
+    let mut grad = Vec::new();
 
     for _ in 0..steps {
         alpha = alpha + (1.0 / steps as f32);
