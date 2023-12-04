@@ -1,4 +1,4 @@
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, BufWriter, Write};
 use std::env;
 use std::path::Path;
 
@@ -135,6 +135,9 @@ fn main() {
         }
     }
 
+    let stdout = io::stdout();
+    let mut out = BufWriter::new(stdout);
+
     let stdin = io::stdin();
     let mut v = vec![];
     for ln in stdin.lock().lines() {
@@ -170,9 +173,9 @@ fn main() {
             let path = shellexpand::tilde(data.1.trim()).into_owned();
             if !Path::new(&path).exists() {
                 if split {
-                    println!("\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data.1);
+                    writeln!(out, "\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data.1).unwrap();
                 } else {
-                    println!("\x1b[38;5;{}m{}\x1b[0m", 1, data.1);
+                    writeln!(out, "\x1b[38;5;{}m{}\x1b[0m", 1, data.1).unwrap();
                 }
                 continue;
             }
@@ -192,15 +195,16 @@ fn main() {
         }
 
         if split {
-            println!("\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m",
+            writeln!(out, "\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m",
                      data.0,
                      fore_color.r, fore_color.g, fore_color.b,
-                     data.1);
+                     data.1).unwrap();
         } else {
-            println!("\x1b[38;2;{};{};{}m{}\x1b[0m",
+            writeln!(out, "\x1b[38;2;{};{};{}m{}\x1b[0m",
                      fore_color.r, fore_color.g, fore_color.b,
-                     data.1);
+                     data.1).unwrap();
         }
     }
+    out.flush().unwrap();
 }
 
