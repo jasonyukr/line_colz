@@ -106,6 +106,7 @@ fn main() {
     let mut check_exist = false;
     let mut reverse = false;
     let mut split = false;
+    let mut tab = false;
 
     // parse argument
     let mut idx_mode = false;
@@ -131,7 +132,11 @@ fn main() {
         } else if arg == "-g" || arg == "--g" {
             idx_mode = true
         } else if arg == "-s" || arg == "--s" {
+            // uses #2 as data (sep by space or tab)
             split = true;
+        } else if arg == "-t" || arg == "--tab" {
+            // uses #1 as data (sep by tab)
+            tab = true;
         }
     }
 
@@ -142,7 +147,14 @@ fn main() {
     let mut v = vec![];
     for ln in stdin.lock().lines() {
         if let Ok(line) = ln {
-            if split {
+            if tab {
+                let line_trim = line.trim();
+                if let Some(i) = line_trim.find('\t') {
+                    v.push(((&line_trim[..i]).to_string(), (&line_trim[i..]).to_string()));
+                } else {
+                    v.push((String::from(""), line_trim.to_string()));
+                }
+            } else if split {
                 let line_trim = line.trim();
                 if let Some(i) = min(line_trim.find(' '), line_trim.find('\t')) {
                     v.push(((&line_trim[..i]).to_string(), (&line_trim[i..]).to_string()));
@@ -170,14 +182,22 @@ fn main() {
     let line_count = v.len() as i32;
     for (idx, data) in v.iter().enumerate() {
         if check_exist {
-            let path = shellexpand::tilde(data.1.trim()).into_owned();
-            if !Path::new(&path).exists() {
-                if split {
-                    writeln!(out, "\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data.1).unwrap();
-                } else {
-                    writeln!(out, "\x1b[38;5;{}m{}\x1b[0m", 1, data.1).unwrap();
+            if tab {
+                let path = shellexpand::tilde(data.0.trim()).into_owned();
+                if !Path::new(&path).exists() {
+                    writeln!(out, "\x1b[31m{}\x1b[0m", data.0).unwrap();
+                    continue;
                 }
-                continue;
+            } else {
+                let path = shellexpand::tilde(data.1.trim()).into_owned();
+                if !Path::new(&path).exists() {
+                    if split {
+                        writeln!(out, "\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data.1).unwrap();
+                    } else {
+                        writeln!(out, "\x1b[38;5;{}m{}\x1b[0m", 1, data.1).unwrap();
+                    }
+                    continue;
+                }
             }
         }
 
@@ -194,7 +214,11 @@ fn main() {
             fore_color = c;
         }
 
-        if split {
+        if tab {
+            writeln!(out, "\x1b[38;2;{};{};{}m{}\x1b[38;2;{};{};{}m{}\x1b[0m",
+                     fore_color.r, fore_color.g, fore_color.b, data.0,
+                     0x40, 0x40, 0x40, data.1).unwrap();
+        } else if split {
             writeln!(out, "\x1b[90m{}\x1b[38;2;{};{};{}m{}\x1b[0m",
                      data.0,
                      fore_color.r, fore_color.g, fore_color.b,
