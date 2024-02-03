@@ -152,7 +152,7 @@ fn main() {
                 if let Some(i) = line_trim.find('\t') {
                     v.push(((&line_trim[..i]).to_string(), (&line_trim[i..]).to_string()));
                 } else {
-                    v.push((String::from(""), line_trim.to_string()));
+                    v.push((line_trim.to_string(), String::from("")));
                 }
             } else if split {
                 let line_trim = line.trim();
