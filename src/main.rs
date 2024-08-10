@@ -102,6 +102,7 @@ fn main() {
         (100, 0x70, 0xc0, 0xb1, 0xb0, 0xb0, 0xb0)];
 
     let mut grad_idx = 0;
+    let mut cut_value = 0;
 
     let mut check_exist = false;
     let mut reverse = false;
@@ -110,6 +111,7 @@ fn main() {
 
     // parse argument
     let mut idx_mode = false;
+    let mut cut_mode = false;
     for arg in env::args() {
         if idx_mode {
             if let Ok(i) = arg.parse::<usize>() {
@@ -119,6 +121,13 @@ fn main() {
                 }
             }
             idx_mode = false;
+            continue;
+        }
+        if cut_mode {
+            if let Ok(i) = arg.parse::<usize>() {
+                cut_value = i;
+            }
+            cut_mode = false;
             continue;
         }
         if arg == "-f" || arg == "--f" {
@@ -131,6 +140,8 @@ fn main() {
             reverse = true;
         } else if arg == "-g" || arg == "--g" {
             idx_mode = true
+        } else if arg == "-c" || arg == "--c" {
+            cut_mode = true
         } else if arg == "-s" || arg == "--s" {
             // uses #2 as data (sep by space or tab)
             split = true;
@@ -194,7 +205,12 @@ fn main() {
                     if split {
                         writeln!(out, "\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data.1).unwrap();
                     } else {
-                        writeln!(out, "\x1b[38;5;{}m{}\x1b[0m", 1, data.1).unwrap();
+                        if cut_value > 0 {
+                            let value: String = data.1.chars().skip(cut_value).collect();
+                            writeln!(out, "\x1b[38;5;{}m{}\x1b[0m", 1, value).unwrap();
+                        } else {
+                            writeln!(out, "\x1b[38;5;{}m{}\x1b[0m", 1, data.1).unwrap();
+                        }
                     }
                     continue;
                 }
@@ -224,9 +240,16 @@ fn main() {
                      fore_color.r, fore_color.g, fore_color.b,
                      data.1).unwrap();
         } else {
-            writeln!(out, "\x1b[38;2;{};{};{}m{}\x1b[0m",
-                     fore_color.r, fore_color.g, fore_color.b,
-                     data.1).unwrap();
+            if cut_value > 0 {
+                let value: String = data.1.chars().skip(cut_value).collect();
+                writeln!(out, "\x1b[38;2;{};{};{}m{}\x1b[0m",
+                         fore_color.r, fore_color.g, fore_color.b,
+                         value).unwrap();
+            } else {
+                writeln!(out, "\x1b[38;2;{};{};{}m{}\x1b[0m",
+                         fore_color.r, fore_color.g, fore_color.b,
+                         data.1).unwrap();
+            }
         }
     }
     out.flush().unwrap();
