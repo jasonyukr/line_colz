@@ -200,17 +200,18 @@ fn main() {
                     continue;
                 }
             } else {
-                let path = shellexpand::tilde(data.1.trim()).into_owned();
+                let data1;
+                if cut_value > 0 {
+                    data1 = data.1.chars().skip(cut_value).collect();
+                } else {
+                    data1 = format!("{}", data.1);
+                }
+                let path = shellexpand::tilde(data1.trim()).into_owned();
                 if !Path::new(&path).exists() {
                     if split {
-                        writeln!(out, "\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data.1).unwrap();
+                        writeln!(out, "\x1b[90m{}\x1b[38;5;{}m{}\x1b[0m", data.0, 1, data1).unwrap();
                     } else {
-                        if cut_value > 0 {
-                            let value: String = data.1.chars().skip(cut_value).collect();
-                            writeln!(out, "\x1b[38;5;{}m{}\x1b[0m", 1, value).unwrap();
-                        } else {
-                            writeln!(out, "\x1b[38;5;{}m{}\x1b[0m", 1, data.1).unwrap();
-                        }
+                        writeln!(out, "\x1b[38;5;{}m{}\x1b[0m", 1, data1).unwrap();
                     }
                     continue;
                 }
